@@ -1,0 +1,28 @@
+name: Cluster UI Canary
+on: [pull_request]
+jobs:
+  cluster_ui_canary:
+    runs-on: ubuntu-latest
+    if: ${{ !github.event.pull_request.head.repo.fork }}
+    defaults:
+      run:
+        working-directory: pkg/ui/workspaces/cluster-ui
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 16
+        cache: 'yarn'
+        cache-dependency-path: pkg/ui/workspaces/cluster-ui/yarn.lock
+      env:
+        NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+    - name: Create canary version
+      run: |
+        yarn install --frozen-lockfile
+        bazel build //pkg/ui/workspaces/cluster-ui:cluster-ui
+
